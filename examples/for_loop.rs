@@ -14,11 +14,11 @@ fn compile(x: u64, y: u64, z: u64) {
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
 
     let basic_block = context.append_basic_block(&function, "entry");
-    let forin_block = context.append_basic_block(&function, "forin");
-    let forout_block = context.append_basic_block(&function, "forout");
+    let loop_block = context.append_basic_block(&function, "loop");
     let cont_block = context.append_basic_block(&function, "cont");
 
     let i64_type = context.i64_type();
+
     let x_val = context.i64_type().const_int(x, false);
     let val_one = context.i64_type().const_int(y, false);
     let val_target = context.i64_type().const_int(z, false);
@@ -26,18 +26,14 @@ fn compile(x: u64, y: u64, z: u64) {
     builder.position_at_end(&basic_block);
     let alloca_x = builder.build_alloca(i64_type, "variable_x");
     builder.build_store(alloca_x, x_val);
-    builder.build_unconditional_branch(&forin_block); // emit br
+    builder.build_unconditional_branch(&loop_block); // emit br
 
-    builder.position_at_end(&forin_block);
+    builder.position_at_end(&loop_block);
     let variable_x = builder.build_load(alloca_x, "variable_x").into_int_value();
     let new_variable_x = builder.build_int_add(variable_x, val_one, "increment");
     builder.build_store(alloca_x, new_variable_x);
-    builder.build_unconditional_branch(&forout_block); // emit br
-
-    builder.position_at_end(&forout_block);
-    let variable_x = builder.build_load(alloca_x, "variable_x").into_int_value();
-    let cond = builder.build_int_compare(IntPredicate::UGE, variable_x, val_target, "while_cond");
-    builder.build_conditional_branch(cond, &cont_block, &forin_block); // emit br
+    let cond = builder.build_int_compare(IntPredicate::UGE, new_variable_x, val_target, "while_cond");
+    builder.build_conditional_branch(cond, &cont_block, &loop_block); // emit br
 
     builder.position_at_end(&cont_block);
     let variable_x = builder.build_load(alloca_x, "variable_x").into_int_value();
