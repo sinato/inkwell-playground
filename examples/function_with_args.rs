@@ -13,11 +13,15 @@ fn compile(x: u64, y: u64) {
     let i64_type = context.i64_type();
 
     // const value definition
-    let const_x = i64_type.const_int(x, false);  // return value
-    let const_y = i64_type.const_int(y, false);  // return value
+    let const_x = i64_type.const_int(x, false); // return value
+    let const_y = i64_type.const_int(y, false); // return value
 
     // function1
-    let fn_value = module.add_function("func", i64_type.fn_type(&[i64_type.into(), i64_type.into()], false), None);
+    let fn_value = module.add_function(
+        "func",
+        i64_type.fn_type(&[i64_type.into(), i64_type.into()], false),
+        None,
+    );
     let entry_bb = fn_value.append_basic_block("entry_func");
     builder.position_at_end(&entry_bb);
     let arg0 = fn_value.get_first_param().unwrap().into_int_value();
@@ -25,12 +29,12 @@ fn compile(x: u64, y: u64) {
     let sum = builder.build_int_add(arg0, arg1, "add");
     builder.build_return(Some(&sum));
 
-
     // main function
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
     let main_bb = context.append_basic_block(&function, "entry");
     builder.position_at_end(&main_bb);
-    let func_call_site = builder.build_call(fn_value, &[const_x.into(), const_y.into()], "run_func");
+    let func_call_site =
+        builder.build_call(fn_value, &[const_x.into(), const_y.into()], "run_func");
 
     let val = func_call_site.try_as_basic_value().left().unwrap();
 
