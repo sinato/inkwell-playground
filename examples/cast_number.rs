@@ -1,6 +1,7 @@
 extern crate inkwell;
 
 use inkwell::context::Context;
+use inkwell::values::InstructionOpcode;
 use std::{path, process};
 
 fn compile(code: String) {
@@ -18,9 +19,14 @@ fn compile(code: String) {
     let num = code.parse::<f64>().unwrap();
     let a = context.f32_type().const_float(num);
 
-    // cast
-    let ret = a.const_to_signed_int(context.i32_type());
+    // prepare
+    let alloca = builder.build_alloca(context.f32_type(), "");
+    builder.build_store(alloca, a);
+    let val = builder.build_load(alloca, "");
 
+    // cast
+    let opcode = InstructionOpcode::FPToSI;
+    let ret = builder.build_cast(opcode, val, context.i32_type(), "");
     builder.build_return(Some(&ret));
 
     // print_to_file
