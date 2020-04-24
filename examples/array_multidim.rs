@@ -5,12 +5,12 @@ use inkwell::context::Context;
 use inkwell::values::PointerValue;
 use std::{path, process};
 
-fn get_element_pointer(
-    builder: &Builder,
-    context: &Context,
-    p: PointerValue,
+fn get_element_pointer<'ctx>(
+    builder: &'ctx Builder,
+    context: &'ctx Context,
+    p: PointerValue<'ctx>,
     num: u64,
-) -> PointerValue {
+) -> PointerValue<'ctx> {
     unsafe {
         builder.build_gep(
             p,
@@ -29,9 +29,9 @@ fn compile(x: u64) {
     let module = context.create_module("my_module");
     let builder = context.create_builder();
     let function = module.add_function("main", context.i32_type().fn_type(&[], false), None);
-    let basic_block = context.append_basic_block(&function, "entry");
+    let basic_block = context.append_basic_block(function, "entry");
 
-    builder.position_at_end(&basic_block);
+    builder.position_at_end(basic_block);
 
     let array_type = context.i32_type().array_type(2).array_type(2);
     let parent_array_alloca = builder.build_alloca(array_type, "array_alloca");
@@ -65,7 +65,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let status = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .status()
         .expect("failed to execute process");
 

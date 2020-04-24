@@ -11,8 +11,8 @@ fn compile(a1: u64, a2: u64, a3: u64, a4: u64) {
 
     // generate function prototype
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
-    let basic_block = context.append_basic_block(&function, "entry");
-    builder.position_at_end(&basic_block);
+    let basic_block = context.append_basic_block(function, "entry");
+    builder.position_at_end(basic_block);
 
     // define main function
     let i64_type = context.i64_type();
@@ -34,7 +34,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let status = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .status()
         .expect("failed to execute process");
 

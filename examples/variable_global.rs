@@ -1,31 +1,31 @@
 extern crate inkwell;
 
 use inkwell::context::Context;
-use inkwell::values::IntValue;
-use std::collections::HashMap;
+use inkwell::AddressSpace;
 use std::{path, process};
 
 fn compile(x: u64) {
     // initialize
     let context = Context::create();
-    let module = context.create_module("my_module");
     let builder = context.create_builder();
-    let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
+
+    let context = Context::create();
+    let module = context.create_module("mod");
+    let i64_type = context.i64_type();
+    let global = module.add_global(i64_type, Some(AddressSpace::Const), "my_global");
+
+    let x_val = context.i64_type().const_int(x, false);
+    global.set_initializer(&x_val);
+
+    let function = module.add_function("main", i64_type.fn_type(&[], false), None);
     let basic_block = context.append_basic_block(function, "entry");
 
     builder.position_at_end(basic_block);
+    let val = builder
+        .build_load(global.as_pointer_value(), "val")
+        .into_int_value();
 
-    // env
-    let mut env: HashMap<&str, IntValue> = HashMap::new();
-
-    // type
-    let i64_type = context.i64_type();
-    let const_x = i64_type.const_int(x, false);
-    env.insert("x", const_x);
-    let const_y = i64_type.const_int(100, false);
-    let sum = builder.build_int_add(*env.get("x").unwrap(), const_y, "main");
-
-    builder.build_return(Some(&sum));
+    builder.build_return(Some(&val));
     // print_to_file
     let _ = module.print_to_file(path::Path::new("compiled.ll"));
 }
@@ -46,7 +46,7 @@ fn main() {
     let code = String::from("10");
     println!("code: {}", code);
     compile(10);
-    run("110");
+    run("10");
     compile(77);
-    run("177");
+    run("77");
 }

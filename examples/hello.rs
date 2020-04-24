@@ -17,9 +17,9 @@ fn compile() {
     );
     module.add_function("printf", fn_type, Some(Linkage::External));
 
-    let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
-    let basic_block = context.append_basic_block(&function, "entry");
-    builder.position_at_end(&basic_block);
+    let function = module.add_function("main", context.i32_type().fn_type(&[], false), None);
+    let basic_block = context.append_basic_block(function, "entry");
+    builder.position_at_end(basic_block);
 
     let hello_str = unsafe { builder.build_global_string("hello world\n", "hello_str") };
     let fn_value = match module.get_function("printf") {
@@ -46,7 +46,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let output = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .output()
         .expect("failed to execute process");
 

@@ -13,18 +13,18 @@ fn compile(x: u64) {
     let i64_type = context.i64_type();
 
     // const value definition
-    let const_x = i64_type.const_int(x, false);  // return value
+    let const_x = i64_type.const_int(x, false); // return value
 
     // function1
     let fn_value = module.add_function("func", i64_type.fn_type(&[], false), None);
-    let entry_bb = fn_value.append_basic_block("entry_func");
-    builder.position_at_end(&entry_bb);
+    let entry_bb = context.append_basic_block(fn_value, "entry_func");
+    builder.position_at_end(entry_bb);
     builder.build_return(Some(&const_x));
 
     // main function
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
-    let main_bb = context.append_basic_block(&function, "entry");
-    builder.position_at_end(&main_bb);
+    let main_bb = context.append_basic_block(function, "entry");
+    builder.position_at_end(main_bb);
     let func_call_site = builder.build_call(fn_value, &[], "run_func");
 
     let val = func_call_site.try_as_basic_value().left().unwrap();
@@ -39,7 +39,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let status = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .status()
         .expect("failed to execute process");
 

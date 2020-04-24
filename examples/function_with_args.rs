@@ -22,8 +22,8 @@ fn compile(x: u64, y: u64) {
         i64_type.fn_type(&[i64_type.into(), i64_type.into()], false),
         None,
     );
-    let entry_bb = fn_value.append_basic_block("entry_func");
-    builder.position_at_end(&entry_bb);
+    let entry_bb = context.append_basic_block(fn_value, "entry_func");
+    builder.position_at_end(entry_bb);
     let arg0 = fn_value.get_first_param().unwrap().into_int_value();
     let arg1 = fn_value.get_nth_param(1).unwrap().into_int_value();
     let sum = builder.build_int_add(arg0, arg1, "add");
@@ -31,8 +31,8 @@ fn compile(x: u64, y: u64) {
 
     // main function
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
-    let main_bb = context.append_basic_block(&function, "entry");
-    builder.position_at_end(&main_bb);
+    let main_bb = context.append_basic_block(function, "entry");
+    builder.position_at_end(main_bb);
     let func_call_site =
         builder.build_call(fn_value, &[const_x.into(), const_y.into()], "run_func");
 
@@ -48,7 +48,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let status = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .status()
         .expect("failed to execute process");
 

@@ -9,9 +9,9 @@ fn compile(x: u64) {
     let module = context.create_module("my_module");
     let builder = context.create_builder();
     let function = module.add_function("main", context.i64_type().fn_type(&[], false), None);
-    let basic_block = context.append_basic_block(&function, "entry");
+    let basic_block = context.append_basic_block(function, "entry");
 
-    builder.position_at_end(&basic_block);
+    builder.position_at_end(basic_block);
 
     // type
     let i64_type = context.i64_type();
@@ -33,7 +33,7 @@ fn run(expect: &str) {
     // run generated IR and get returned status code
     let status = process::Command::new("sh")
         .arg("-c")
-        .arg("llvm-as compiled.ll; lli compiled.bc")
+        .arg("llvm-as-10 compiled.ll; lli-10 compiled.bc")
         .status()
         .expect("failed to execute process");
 
